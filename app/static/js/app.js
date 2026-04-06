@@ -56,18 +56,27 @@ function hideMsg(id) {
   document.getElementById(id)?.classList.add('hidden');
 }
 
+function toLocalDateStr(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function getMondayOfWeek(date = new Date()) {
   const d = new Date(date);
   const day = d.getDay(); // 0=dim, 1=lun, ..., 6=sam
   // Dimanche → prochain lundi (+1), autres jours → lundi de la semaine en cours
   const diff = day === 0 ? 1 : -(day - 1);
   d.setDate(d.getDate() + diff);
-  return d.toISOString().split('T')[0];
+  return toLocalDateStr(d);
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
-  const d = new Date(dateStr + 'T00:00:00');
+  // Forcer minuit en heure locale pour éviter le décalage UTC
+  const [y, m, day] = dateStr.split('-').map(Number);
+  const d = new Date(y, m - 1, day);
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
