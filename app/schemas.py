@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     full_name: Optional[str] = None
     height_cm: Optional[float] = None
     target_weight: Optional[float] = None
+    is_admin: bool = False
 
 
 class UserOut(BaseModel):

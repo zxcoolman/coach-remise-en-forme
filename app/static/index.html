@@ -66,6 +66,7 @@
         <li><a href="#" data-tab="checkin">📝 Check-in semaine</a></li>
         <li><a href="#" data-tab="meals">🍽️ Plan repas</a></li>
         <li><a href="#" data-tab="shopping">🛒 Liste de courses</a></li>
+        <li id="nav-admin" style="display:none"><a href="#" data-tab="admin">⚙️ Admin</a></li>
         <li><a href="#" data-tab="sport">💪 Sport</a></li>
         <li><a href="#" data-tab="recipes">📖 Recettes</a></li>
         <li><a href="#" data-tab="import">📥 Import Claude</a></li>
@@ -243,6 +244,54 @@
           </div>
           <button class="btn-primary" id="btn-add-shop-item">Ajouter</button>
         </div>
+      </div>
+
+      <!-- ── Admin ── -->
+      <div id="tab-admin" class="tab-content">
+        <h2>Administration</h2>
+
+        <!-- Créer un utilisateur -->
+        <div class="form-card">
+          <h3>Créer un utilisateur</h3>
+          <div id="admin-create-error" class="error-msg hidden"></div>
+          <div id="admin-create-success" class="success-msg hidden"></div>
+          <div class="row-2">
+            <div>
+              <label>Nom d'utilisateur *</label>
+              <input type="text" id="adm-username" placeholder="pseudo" />
+            </div>
+            <div>
+              <label>Email *</label>
+              <input type="email" id="adm-email" placeholder="email@exemple.com" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Mot de passe *</label>
+              <input type="password" id="adm-password" placeholder="••••••••" />
+            </div>
+            <div>
+              <label>Prénom / Nom</label>
+              <input type="text" id="adm-fullname" placeholder="Jean Dupont" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Rôle</label>
+              <select id="adm-role">
+                <option value="user">Utilisateur</option>
+                <option value="admin">Administrateur</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn-primary" id="btn-admin-create">Créer le compte</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liste des utilisateurs -->
+        <h3 style="margin-top:2rem">Utilisateurs</h3>
+        <div id="admin-users-list"></div>
       </div>
 
       <!-- ── Sport ── -->

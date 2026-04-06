@@ -138,7 +138,7 @@ async function loadApp() {
     loadDashboard();
     // Afficher le lien register uniquement pour l'admin
     if (currentUser.is_admin) {
-      document.getElementById('register-link').style.display = '';
+      document.getElementById('nav-admin').style.display = '';
     }
     // Pré-remplir la date du lundi courant
     const monday = getMondayOfWeek();
@@ -163,6 +163,7 @@ document.querySelectorAll('[data-tab]').forEach(link => {
     if (tab === 'checkin') loadCheckinHistory();
     if (tab === 'progress') loadProgress();
     if (tab === 'recipes') loadRecipes();
+    if (tab === 'admin') loadAdminUsers();
     if (tab === 'sport') loadSport(document.getElementById('sport-week-date').value);
   });
 });
@@ -608,6 +609,113 @@ async function loadProgress() {
 
   } catch (err) {
     console.error('Progress error', err);
+  }
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+document.getElementById('btn-admin-create').addEventListener('click', async () => {
+  hideMsg('admin-create-error');
+  hideMsg('admin-create-success');
+  const username = document.getElementById('adm-username').value.trim();
+  const email = document.getElementById('adm-email').value.trim();
+  const password = document.getElementById('adm-password').value;
+  const full_name = document.getElementById('adm-fullname').value.trim() || null;
+  const is_admin = document.getElementById('adm-role').value === 'admin';
+
+  if (!username || !email || !password) {
+    showError('admin-create-error', 'Nom d\'utilisateur, email et mot de passe sont obligatoires');
+    return;
+  }
+  try {
+    const user = await api('POST', '/api/auth/register', { username, email, password, full_name, is_admin });
+    showSuccess('admin-create-success', `Compte créé : ${user.username} (${user.is_admin ? 'admin' : 'utilisateur'})`);
+    document.getElementById('adm-username').value = '';
+    document.getElementById('adm-email').value = '';
+    document.getElementById('adm-password').value = '';
+    document.getElementById('adm-fullname').value = '';
+    document.getElementById('adm-role').value = 'user';
+    loadAdminUsers();
+  } catch (err) {
+    showError('admin-create-error', err.message);
+  }
+});
+
+async function loadAdminUsers() {
+  const container = document.getElementById('admin-users-list');
+  try {
+    const users = await api('GET', '/api/auth/users');
+    container.innerHTML = `
+      <table class="progress-table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Email</th>
+            <th>Rôle</th>
+            <th>Créé le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td><strong>${u.username}</strong>${u.full_name ? '<br><small>' + u.full_name + '</small>' : ''}</td>
+              <td>${u.email}</td>
+              <td>
+                <select class="role-select" data-uid="${u.id}" ${u.id === currentUser.id ? 'disabled' : ''}>
+                  <option value="user" ${!u.is_admin ? 'selected' : ''}>Utilisateur</option>
+                  <option value="admin" ${u.is_admin ? 'selected' : ''}>Admin</option>
+                </select>
+              </td>
+              <td>${formatDate(u.created_at?.split('T')[0])}</td>
+              <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+                ${u.id !== currentUser.id ? `
+                  <button class="btn-secondary" style="font-size:.75rem;padding:.3rem .6rem" onclick="impersonateUser(${u.id}, '${u.username}')">Se connecter en tant que</button>
+                  <button class="meal-delete" onclick="deleteUser(${u.id}, '${u.username}')">✕</button>
+                ` : '<span style="color:var(--text-light);font-size:.8rem">Toi</span>'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    // Listener changement de rôle
+    container.querySelectorAll('.role-select').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const uid = parseInt(sel.dataset.uid);
+        const is_admin = sel.value === 'admin';
+        try {
+          await api('PATCH', `/api/auth/users/${uid}/role`, { is_admin });
+        } catch (err) {
+          alert(err.message);
+          loadAdminUsers();
+        }
+      });
+    });
+  } catch (err) {
+    container.innerHTML = '<p class="empty-msg">Erreur au chargement.</p>';
+  }
+}
+
+async function impersonateUser(userId, username) {
+  if (!confirm(`Se connecter en tant que "${username}" ?`)) return;
+  try {
+    const data = await api('POST', `/api/auth/users/${userId}/impersonate`);
+    TOKEN = data.access_token;
+    localStorage.setItem('coach_token', TOKEN);
+    await loadApp();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteUser(userId, username) {
+  if (!confirm(`Supprimer le compte "${username}" et toutes ses données ?`)) return;
+  try {
+    await api('DELETE', `/api/auth/users/${userId}`);
+    loadAdminUsers();
+  } catch (err) {
+    alert(err.message);
   }
 }
 
