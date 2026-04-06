@@ -62,6 +62,76 @@ def delete_meal(
     db.commit()
 
 
+@router.post("/bulk", status_code=201)
+def import_week(
+    data: schemas.WeekImport,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Importe un plan de semaine complet généré par Claude (repas + courses + recettes)"""
+    # Supprimer les repas existants de la semaine
+    db.query(models.MealPlan).filter(
+        models.MealPlan.user_id == current_user.id,
+        models.MealPlan.week_date == data.week_date
+    ).delete()
+
+    # Créer les repas
+    for m in data.meals:
+        db.add(models.MealPlan(
+            user_id=current_user.id,
+            week_date=data.week_date,
+            **m.dict()
+        ))
+
+    # Créer la liste de courses si fournie
+    if data.shopping:
+        old = db.query(models.ShoppingList).filter(
+            models.ShoppingList.user_id == current_user.id,
+            models.ShoppingList.week_date == data.week_date
+        ).first()
+        if old:
+            db.delete(old)
+        items = [{"name": s.name, "qty": s.qty, "category": s.category, "done": False}
+                 for s in data.shopping]
+        db.add(models.ShoppingList(
+            user_id=current_user.id,
+            week_date=data.week_date,
+            items=json.dumps(items, ensure_ascii=False)
+        ))
+
+    # Créer les recettes si fournies
+    if data.recipes:
+        for r in data.recipes:
+            # Remplacer si une recette du même nom existe déjà
+            existing = db.query(models.Recipe).filter(
+                models.Recipe.user_id == current_user.id,
+                models.Recipe.name == r.name
+            ).first()
+            if existing:
+                db.delete(existing)
+            db.add(models.Recipe(
+                user_id=current_user.id,
+                name=r.name,
+                cuisine=r.cuisine,
+                servings=r.servings,
+                prep_time=r.prep_time,
+                cook_time=r.cook_time,
+                calories_per_serving=r.calories_per_serving,
+                proteins_per_serving=r.proteins_per_serving,
+                ingredients=json.dumps([i.dict() for i in r.ingredients], ensure_ascii=False),
+                steps=json.dumps(r.steps, ensure_ascii=False),
+                notes=r.notes
+            ))
+
+    db.commit()
+    return {
+        "ok": True,
+        "meals_imported": len(data.meals),
+        "shopping_items": len(data.shopping),
+        "recipes_imported": len(data.recipes)
+    }
+
+
 @router.post("/generate-shopping/{week_date}", response_model=schemas.ShoppingListOut)
 def generate_shopping_list(
     week_date: date,

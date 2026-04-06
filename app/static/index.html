@@ -66,6 +66,8 @@
         <li><a href="#" data-tab="checkin">📝 Check-in semaine</a></li>
         <li><a href="#" data-tab="meals">🍽️ Plan repas</a></li>
         <li><a href="#" data-tab="shopping">🛒 Liste de courses</a></li>
+        <li><a href="#" data-tab="recipes">📖 Recettes</a></li>
+        <li><a href="#" data-tab="import">📥 Import Claude</a></li>
         <li><a href="#" data-tab="progress">📈 Progression</a></li>
       </ul>
       <div class="sidebar-user">
@@ -240,6 +242,52 @@
           </div>
           <button class="btn-primary" id="btn-add-shop-item">Ajouter</button>
         </div>
+      </div>
+
+      <!-- ── Recettes ── -->
+      <div id="tab-recipes" class="tab-content">
+        <h2>Mes recettes</h2>
+        <div id="recipes-container" class="recipes-grid"></div>
+      </div>
+
+      <!-- ── Import Claude ── -->
+      <div id="tab-import" class="tab-content">
+        <h2>Importer depuis Claude</h2>
+        <p class="subtitle">Colle ici le bloc JSON généré par Claude à la fin du check-in.</p>
+        <div id="import-error" class="error-msg hidden"></div>
+        <div id="import-success" class="success-msg hidden"></div>
+        <textarea id="import-json" rows="18" placeholder='{
+  "week_date": "2026-04-07",
+  "meals": [
+    {"day_of_week": "lundi", "meal_type": "déjeuner", "recipe_name": "Curry de pois chiches", "calories": 450, "proteins_g": 22}
+  ],
+  "shopping": [
+    {"name": "Pois chiches", "qty": "800g", "category": "Épicerie sèche"},
+    {"name": "Poulet", "qty": "600g", "category": "Viandes"}
+  ],
+  "recipes": [
+    {
+      "name": "Curry de pois chiches",
+      "cuisine": "indienne",
+      "servings": 4,
+      "prep_time": 10,
+      "cook_time": 25,
+      "calories_per_serving": 450,
+      "proteins_per_serving": 22,
+      "ingredients": [
+        {"name": "Pois chiches cuits", "qty": "800g"},
+        {"name": "Tomates concassées", "qty": "400g"}
+      ],
+      "steps": [
+        "Faire revenir l'\''oignon 3 min.",
+        "Ajouter les épices et cuire 1 min.",
+        "Incorporer les pois chiches et les tomates."
+      ],
+      "notes": "Se conserve 4 jours au frigo."
+    }
+  ]
+}'></textarea>
+        <button class="btn-primary" id="btn-import" style="margin-top:1rem">Importer ✓</button>
       </div>
 
       <!-- ── Progression ── -->

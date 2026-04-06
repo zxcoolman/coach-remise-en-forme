@@ -157,6 +157,7 @@ document.querySelectorAll('[data-tab]').forEach(link => {
     if (tab === 'dashboard') loadDashboard();
     if (tab === 'checkin') loadCheckinHistory();
     if (tab === 'progress') loadProgress();
+    if (tab === 'recipes') loadRecipes();
   });
 });
 
@@ -601,6 +602,99 @@ async function loadProgress() {
 
   } catch (err) {
     console.error('Progress error', err);
+  }
+}
+
+// ── Import Claude ─────────────────────────────────────────────────────────────
+
+document.getElementById('btn-import').addEventListener('click', async () => {
+  hideMsg('import-error');
+  hideMsg('import-success');
+  const raw = document.getElementById('import-json').value.trim();
+  if (!raw) { showError('import-error', 'Colle un JSON valide'); return; }
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    showError('import-error', 'JSON invalide — vérifie la syntaxe');
+    return;
+  }
+
+  try {
+    const res = await api('POST', '/api/meals/bulk', data);
+    showSuccess('import-success',
+      `✅ Importé : ${res.meals_imported} repas · ${res.shopping_items} articles de courses · ${res.recipes_imported} recettes`
+    );
+    document.getElementById('import-json').value = '';
+    // Mettre à jour la date de la semaine dans les autres onglets
+    if (data.week_date) {
+      document.getElementById('meals-week-date').value = data.week_date;
+      document.getElementById('shopping-week-date').value = data.week_date;
+    }
+  } catch (err) {
+    showError('import-error', err.message);
+  }
+});
+
+// ── Recettes ──────────────────────────────────────────────────────────────────
+
+async function loadRecipes() {
+  const container = document.getElementById('recipes-container');
+  try {
+    const recipes = await api('GET', '/api/recipes/');
+    if (recipes.length === 0) {
+      container.innerHTML = '<p class="empty-msg">Aucune recette — importe un plan depuis l\'onglet Import Claude.</p>';
+      return;
+    }
+    container.innerHTML = recipes.map(r => {
+      const ingredients = JSON.parse(r.ingredients || '[]');
+      const steps = JSON.parse(r.steps || '[]');
+      const total = (r.prep_time || 0) + (r.cook_time || 0);
+      return `
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <div>
+              <div class="recipe-title">${r.name}</div>
+              ${r.cuisine ? `<div class="recipe-cuisine">${r.cuisine}</div>` : ''}
+            </div>
+            <button class="meal-delete" onclick="deleteRecipe(${r.id})">✕</button>
+          </div>
+          <div class="recipe-meta">
+            ${r.servings ? `<span>👥 ${r.servings} portions</span>` : ''}
+            ${total ? `<span>⏱️ ${total} min</span>` : ''}
+            ${r.calories_per_serving ? `<span>🔥 ${r.calories_per_serving} kcal</span>` : ''}
+            ${r.proteins_per_serving ? `<span>💪 ${r.proteins_per_serving}g prot.</span>` : ''}
+          </div>
+          ${ingredients.length > 0 ? `
+            <details>
+              <summary>Ingrédients (${ingredients.length})</summary>
+              <ul class="recipe-ingredients">
+                ${ingredients.map(i => `<li><b>${i.qty}</b> ${i.name}</li>`).join('')}
+              </ul>
+            </details>` : ''}
+          ${steps.length > 0 ? `
+            <details>
+              <summary>Préparation (${steps.length} étapes)</summary>
+              <ol class="recipe-steps">
+                ${steps.map(s => `<li>${s}</li>`).join('')}
+              </ol>
+            </details>` : ''}
+          ${r.notes ? `<p class="recipe-notes">${r.notes}</p>` : ''}
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<p class="empty-msg">Erreur au chargement des recettes.</p>';
+  }
+}
+
+async function deleteRecipe(id) {
+  try {
+    await api('DELETE', `/api/recipes/${id}`);
+    loadRecipes();
+  } catch (err) {
+    alert(err.message);
   }
 }
 

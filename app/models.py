@@ -20,6 +20,7 @@ class User(Base):
     checkins = relationship("WeeklyCheckin", back_populates="user", cascade="all, delete-orphan")
     meal_plans = relationship("MealPlan", back_populates="user", cascade="all, delete-orphan")
     shopping_lists = relationship("ShoppingList", back_populates="user", cascade="all, delete-orphan")
+    recipes = relationship("Recipe", back_populates="user", cascade="all, delete-orphan")
 
 
 class WeeklyCheckin(Base):
@@ -68,3 +69,23 @@ class ShoppingList(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="shopping_lists")
+
+
+class Recipe(Base):
+    __tablename__ = "recipes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    cuisine = Column(String)                  # indienne, asiatique, méditerranéenne...
+    servings = Column(Integer, default=4)
+    prep_time = Column(Integer)               # minutes
+    cook_time = Column(Integer)               # minutes
+    calories_per_serving = Column(Integer)
+    proteins_per_serving = Column(Float)
+    ingredients = Column(Text)                # JSON: [{"name": "...", "qty": "..."}]
+    steps = Column(Text)                      # JSON: ["étape 1", "étape 2", ...]
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="recipes")
