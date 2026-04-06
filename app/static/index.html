@@ -238,9 +238,18 @@
         <!-- Ajouter manuellement -->
         <div class="form-card" style="margin-top:1.5rem">
           <h3>Ajouter un article manuellement</h3>
-          <div class="row-2">
-            <input type="text" id="shop-item-name" placeholder="Ex: Poulet 1kg" />
-            <input type="text" id="shop-item-qty" placeholder="Quantité" />
+          <div class="row-3">
+            <input type="text" id="shop-item-name" placeholder="Ex: Poulet" />
+            <input type="text" id="shop-item-qty" placeholder="Quantité (ex: 500g)" />
+            <select id="shop-item-category">
+              <option value="Viandes / Poissons">🥩 Viandes / Poissons</option>
+              <option value="Légumes / Fruits">🥦 Légumes / Fruits</option>
+              <option value="Epicerie seche">🛒 Épicerie sèche</option>
+              <option value="Frais / Cremerie">🧀 Frais / Crèmerie</option>
+              <option value="Surgelés">❄️ Surgelés</option>
+              <option value="Boulangerie">🍞 Boulangerie</option>
+              <option value="Autre">📦 Autre</option>
+            </select>
           </div>
           <button class="btn-primary" id="btn-add-shop-item">Ajouter</button>
         </div>

@@ -429,13 +429,14 @@ document.getElementById('btn-load-shopping').addEventListener('click', () => {
 document.getElementById('btn-add-shop-item').addEventListener('click', async () => {
   const name = document.getElementById('shop-item-name').value.trim();
   const qty = document.getElementById('shop-item-qty').value.trim();
+  const category = document.getElementById('shop-item-category').value;
   if (!name) return;
 
   const weekDate = document.getElementById('shopping-week-date').value;
   if (!weekDate) { showError('shopping-error', 'Sélectionne une semaine'); return; }
 
   let items = currentShoppingList ? JSON.parse(currentShoppingList.items) : [];
-  items.push({ name, qty: qty || '', done: false });
+  items.push({ name, qty: qty || '', category, done: false });
 
   try {
     if (currentShoppingList) {
@@ -457,6 +458,27 @@ document.getElementById('btn-add-shop-item').addEventListener('click', async () 
   }
 });
 
+const CATEGORY_META = {
+  'Viandes / Poissons':  { icon: '🥩', order: 1 },
+  'Légumes / Fruits':    { icon: '🥦', order: 2 },
+  'Epicerie seche':      { icon: '🛒', order: 3 },
+  'Frais / Cremerie':    { icon: '🧀', order: 4 },
+  'Surgelés':            { icon: '❄️', order: 5 },
+  'Boulangerie':         { icon: '🍞', order: 6 },
+  'Autre':               { icon: '📦', order: 7 },
+};
+
+function getCategoryMeta(cat) {
+  if (!cat) return { icon: '📦', order: 99 };
+  // Correspondance souple (gère les emojis dans les catégories importées)
+  const clean = cat.replace(/[^\w\s\/]/g, '').trim();
+  for (const [key, meta] of Object.entries(CATEGORY_META)) {
+    if (clean.toLowerCase().includes(key.toLowerCase()) ||
+        key.toLowerCase().includes(clean.toLowerCase())) return meta;
+  }
+  return { icon: '📦', order: 99 };
+}
+
 async function loadShopping(weekDate) {
   if (!weekDate) return;
   currentShoppingWeek = weekDate;
@@ -473,13 +495,45 @@ async function loadShopping(weekDate) {
       return;
     }
 
-    container.innerHTML = items.map((item, idx) => `
-      <div class="shop-item ${item.done ? 'done' : ''}" id="shop-${idx}">
-        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleShopItem(${idx})" />
-        <span class="shop-name">${item.name}</span>
-        <span class="shop-qty">${item.qty || ''}</span>
+    // Grouper par catégorie
+    const groups = {};
+    items.forEach((item, idx) => {
+      const cat = item.category || 'Autre';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push({ ...item, idx });
+    });
+
+    // Trier les catégories par ordre défini
+    const sortedCats = Object.keys(groups).sort((a, b) =>
+      getCategoryMeta(a).order - getCategoryMeta(b).order
+    );
+
+    const doneCount = items.filter(i => i.done).length;
+    const progress = Math.round((doneCount / items.length) * 100);
+
+    container.innerHTML = `
+      <div class="shop-progress-bar">
+        <div class="shop-progress-fill" style="width:${progress}%"></div>
+        <span class="shop-progress-label">${doneCount} / ${items.length} articles</span>
       </div>
-    `).join('');
+      ${sortedCats.map(cat => {
+        const meta = getCategoryMeta(cat);
+        const catItems = groups[cat];
+        const allDone = catItems.every(i => i.done);
+        return `
+          <div class="shop-category ${allDone ? 'cat-done' : ''}">
+            <div class="shop-cat-header">${meta.icon} ${cat}</div>
+            ${catItems.map(item => `
+              <div class="shop-item ${item.done ? 'done' : ''}" id="shop-${item.idx}">
+                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleShopItem(${item.idx})" />
+                <span class="shop-name">${item.name}</span>
+                <span class="shop-qty">${item.qty || ''}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('')}
+    `;
   } catch {
     currentShoppingList = null;
     container.innerHTML = '<p class="empty-msg">Aucune liste pour cette semaine. Génère-la depuis le plan de repas ou ajoute des articles manuellement.</p>';
