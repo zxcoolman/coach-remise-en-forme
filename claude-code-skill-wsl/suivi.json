@@ -1,0 +1,21 @@
+{
+  "profil": {
+    "nom": "Clément",
+    "taille_cm": 169,
+    "poids_depart_kg": 95,
+    "objectif_poids_kg": null,
+    "date_debut": "2026-04-07"
+  },
+  "checkins": [
+    {
+      "week": "2026-04-07",
+      "weight_kg": 95.0,
+      "steps_per_day": 10000,
+      "sport_sessions": 1,
+      "sport_type": "marche quotidienne (chien)",
+      "energy": 4,
+      "mood": 5,
+      "notes": "Première semaine de suivi. Point de départ 95kg / 169cm / IMC 33.3"
+    }
+  ]
+}
