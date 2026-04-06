@@ -641,6 +641,54 @@ document.getElementById('btn-admin-create').addEventListener('click', async () =
   }
 });
 
+// Modal édition
+let editingUserId = null;
+
+document.getElementById('modal-edit-cancel').addEventListener('click', () => {
+  document.getElementById('modal-edit-user').classList.add('hidden');
+});
+document.getElementById('modal-edit-save').addEventListener('click', async () => {
+  hideMsg('modal-edit-error');
+  hideMsg('modal-edit-success');
+  const email = document.getElementById('modal-email').value.trim();
+  const password = document.getElementById('modal-password').value;
+  if (!email && !password) {
+    showError('modal-edit-error', 'Remplis au moins un champ');
+    return;
+  }
+  const body = {};
+  if (email) body.email = email;
+  if (password) body.password = password;
+  try {
+    await api('PATCH', `/api/auth/users/${editingUserId}/credentials`, body);
+    showSuccess('modal-edit-success', 'Mis à jour avec succès');
+    document.getElementById('modal-email').value = '';
+    document.getElementById('modal-password').value = '';
+    loadAdminUsers();
+  } catch (err) {
+    showError('modal-edit-error', err.message);
+  }
+});
+
+function openEditModal(userId, username) {
+  editingUserId = userId;
+  document.getElementById('modal-edit-title').textContent = `Modifier : ${username}`;
+  document.getElementById('modal-email').value = '';
+  document.getElementById('modal-password').value = '';
+  hideMsg('modal-edit-error');
+  hideMsg('modal-edit-success');
+  document.getElementById('modal-edit-user').classList.remove('hidden');
+}
+
+async function toggleUserActive(userId, isActive) {
+  try {
+    await api('PATCH', `/api/auth/users/${userId}/toggle-active`);
+    loadAdminUsers();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 async function loadAdminUsers() {
   const container = document.getElementById('admin-users-list');
   try {
@@ -653,6 +701,7 @@ async function loadAdminUsers() {
             <th>Email</th>
             <th>Rôle</th>
             <th>Créé le</th>
+            <th>Statut</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -668,9 +717,16 @@ async function loadAdminUsers() {
                 </select>
               </td>
               <td>${formatDate(u.created_at?.split('T')[0])}</td>
-              <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+              <td>
+                <span class="badge" style="background:${u.is_active ? '#dcfce7' : '#fee2e2'};color:${u.is_active ? '#15803d' : '#dc2626'}">
+                  ${u.is_active ? 'Actif' : 'Bloqué'}
+                </span>
+              </td>
+              <td style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
                 ${u.id !== currentUser.id ? `
-                  <button class="btn-secondary" style="font-size:.75rem;padding:.3rem .6rem" onclick="impersonateUser(${u.id}, '${u.username}')">Se connecter en tant que</button>
+                  <button class="btn-secondary" style="font-size:.73rem;padding:.25rem .5rem" onclick="openEditModal(${u.id}, '${u.username}')">✏️ Modifier</button>
+                  <button class="btn-secondary" style="font-size:.73rem;padding:.25rem .5rem;background:${u.is_active ? '#fff7ed' : '#f0fdf4'};color:${u.is_active ? '#c2410c' : '#15803d'}" onclick="toggleUserActive(${u.id}, ${u.is_active})">${u.is_active ? '🔒 Bloquer' : '🔓 Débloquer'}</button>
+                  <button class="btn-secondary" style="font-size:.73rem;padding:.25rem .5rem" onclick="impersonateUser(${u.id}, '${u.username}')">👤 Impersonnifier</button>
                   <button class="meal-delete" onclick="deleteUser(${u.id}, '${u.username}')">✕</button>
                 ` : '<span style="color:var(--text-light);font-size:.8rem">Toi</span>'}
               </td>

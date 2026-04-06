@@ -527,6 +527,22 @@ h3 {
   font-style: italic;
 }
 
+/* ─── MODAL ─────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-overlay.hidden { display: none; }
+.modal-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 2rem; width: 100%; max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  display: flex; flex-direction: column;
+}
+.modal-card h3 { margin: 0 0 1.2rem; }
+.modal-card label { font-size: .85rem; font-weight: 600; margin-bottom: .3rem; display: block; }
+.modal-card input { margin-bottom: .2rem; }
+
 /* ─── SPORT ─────────────────────────────────── */
 .sport-day { margin-bottom: 1.5rem; }
 .sport-day-header {

@@ -366,6 +366,23 @@
     </main>
   </div>
 
+  <!-- Modal édition utilisateur -->
+  <div id="modal-edit-user" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 id="modal-edit-title">Modifier l'utilisateur</h3>
+      <div id="modal-edit-error" class="error-msg hidden"></div>
+      <div id="modal-edit-success" class="success-msg hidden"></div>
+      <label>Nouvel email</label>
+      <input type="email" id="modal-email" placeholder="laisser vide pour ne pas changer" />
+      <label style="margin-top:.8rem">Nouveau mot de passe</label>
+      <input type="password" id="modal-password" placeholder="laisser vide pour ne pas changer" />
+      <div style="display:flex;gap:.8rem;margin-top:1.2rem">
+        <button class="btn-primary" id="modal-edit-save">Enregistrer</button>
+        <button class="btn-secondary" id="modal-edit-cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/app.js"></script>
 </body>
 </html>

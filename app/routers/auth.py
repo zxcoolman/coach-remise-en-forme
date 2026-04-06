@@ -80,6 +80,46 @@ def delete_user(
     db.commit()
 
 
+@router.patch("/users/{user_id}/credentials")
+def update_credentials(
+    user_id: int,
+    body: dict,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    if "email" in body and body["email"]:
+        existing = db.query(models.User).filter(
+            models.User.email == body["email"],
+            models.User.id != user_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
+        user.email = body["email"]
+    if "password" in body and body["password"]:
+        user.hashed_password = get_password_hash(body["password"])
+    db.commit()
+    return {"ok": True}
+
+
+@router.patch("/users/{user_id}/toggle-active")
+def toggle_active(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Tu ne peux pas te bloquer toi-même")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    user.is_active = not user.is_active
+    db.commit()
+    return {"ok": True, "is_active": user.is_active}
+
+
 @router.post("/users/{user_id}/impersonate", response_model=schemas.Token)
 def impersonate(
     user_id: int,
@@ -99,10 +139,9 @@ def impersonate(
 def login(data: schemas.LoginData, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == data.username).first()
     if not user or not verify_password(data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiants incorrects"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Identifiants incorrects")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Ce compte est désactivé")
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
 
