@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy import text
 from .database import Base, engine, SessionLocal
 from .routers import auth, checkins, meals, shopping, recipes, exercises
 from . import models
@@ -11,6 +12,21 @@ import string
 
 # Créer les tables au démarrage
 Base.metadata.create_all(bind=engine)
+
+
+def run_migrations():
+    """Applique les migrations de colonnes manquantes sur les tables existantes."""
+    with engine.connect() as conn:
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"
+        ))
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"
+        ))
+        conn.commit()
+
+
+run_migrations()
 
 
 def create_admin_if_missing():
