@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Remise en Forme 🏃</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- ═══ PAGE LOGIN ═══ -->
+  <div id="page-login" class="page active">
+    <div class="auth-card">
+      <div class="logo">🏃 Coach Forme</div>
+      <h1>Connexion</h1>
+      <div id="login-error" class="error-msg hidden"></div>
+      <form id="form-login">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="login-username" placeholder="tonpseudo" required />
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" placeholder="••••••••" required />
+        <button type="submit" class="btn-primary">Se connecter</button>
+      </form>
+      <p class="auth-switch">Pas encore de compte ? <a href="#" id="go-register">Créer un compte</a></p>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE REGISTER ═══ -->
+  <div id="page-register" class="page">
+    <div class="auth-card">
+      <div class="logo">🏃 Coach Forme</div>
+      <h1>Créer un compte</h1>
+      <div id="register-error" class="error-msg hidden"></div>
+      <form id="form-register">
+        <label>Nom d'utilisateur *</label>
+        <input type="text" id="reg-username" placeholder="tonpseudo" required />
+        <label>Email *</label>
+        <input type="email" id="reg-email" placeholder="toi@email.com" required />
+        <label>Mot de passe *</label>
+        <input type="password" id="reg-password" placeholder="••••••••" required />
+        <label>Prénom / Nom (optionnel)</label>
+        <input type="text" id="reg-fullname" placeholder="Jean Dupont" />
+        <div class="row-2">
+          <div>
+            <label>Taille (cm)</label>
+            <input type="number" id="reg-height" placeholder="169" />
+          </div>
+          <div>
+            <label>Poids cible (kg)</label>
+            <input type="number" id="reg-target" placeholder="75" step="0.1" />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">Créer mon compte</button>
+      </form>
+      <p class="auth-switch">Déjà un compte ? <a href="#" id="go-login">Se connecter</a></p>
+    </div>
+  </div>
+
+  <!-- ═══ APP PRINCIPALE ═══ -->
+  <div id="page-app" class="page">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="sidebar-logo">🏃 Coach Forme</div>
+      <ul>
+        <li><a href="#" data-tab="dashboard" class="active">📊 Tableau de bord</a></li>
+        <li><a href="#" data-tab="checkin">📝 Check-in semaine</a></li>
+        <li><a href="#" data-tab="meals">🍽️ Plan repas</a></li>
+        <li><a href="#" data-tab="shopping">🛒 Liste de courses</a></li>
+        <li><a href="#" data-tab="progress">📈 Progression</a></li>
+      </ul>
+      <div class="sidebar-user">
+        <span id="sidebar-username"></span>
+        <button id="btn-logout" class="btn-logout">Déconnexion</button>
+      </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main id="main-content">
+
+      <!-- ── Dashboard ── -->
+      <div id="tab-dashboard" class="tab-content active">
+        <h2>Tableau de bord</h2>
+        <div id="dashboard-greeting" class="greeting-card"></div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-label">Poids actuel</div>
+            <div class="stat-value" id="dash-weight">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📉</div>
+            <div class="stat-label">Évolution</div>
+            <div class="stat-value" id="dash-delta">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚶</div>
+            <div class="stat-label">Pas/jour</div>
+            <div class="stat-value" id="dash-steps">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💪</div>
+            <div class="stat-label">Séances sport</div>
+            <div class="stat-value" id="dash-sport">—</div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-weight-mini"></canvas>
+        </div>
+        <div id="dash-trend-banner"></div>
+      </div>
+
+      <!-- ── Check-in ── -->
+      <div id="tab-checkin" class="tab-content">
+        <h2>Check-in de la semaine</h2>
+        <p class="subtitle">Remplis ce formulaire chaque semaine pour suivre ta progression.</p>
+        <div id="checkin-error" class="error-msg hidden"></div>
+        <div id="checkin-success" class="success-msg hidden"></div>
+        <form id="form-checkin" class="form-card">
+          <label>Semaine du (lundi)</label>
+          <input type="date" id="ci-date" required />
+          <div class="row-2">
+            <div>
+              <label>Poids (kg)</label>
+              <input type="number" id="ci-weight" step="0.1" placeholder="94.5" />
+            </div>
+            <div>
+              <label>Pas/jour en moyenne</label>
+              <input type="number" id="ci-steps" placeholder="8000" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Séances de sport</label>
+              <input type="number" id="ci-sessions" min="0" value="0" />
+            </div>
+            <div>
+              <label>Minutes de sport au total</label>
+              <input type="number" id="ci-minutes" min="0" value="0" />
+            </div>
+          </div>
+          <label>Niveau d'énergie (1 = épuisé, 5 = au top)</label>
+          <div class="emoji-rating" id="rating-energy">
+            <span data-val="1">😴</span>
+            <span data-val="2">😕</span>
+            <span data-val="3">😐</span>
+            <span data-val="4">😊</span>
+            <span data-val="5">🤩</span>
+          </div>
+          <input type="hidden" id="ci-energy" />
+          <label>Humeur générale (1 = bas, 5 = excellent)</label>
+          <div class="emoji-rating" id="rating-mood">
+            <span data-val="1">😢</span>
+            <span data-val="2">😟</span>
+            <span data-val="3">😐</span>
+            <span data-val="4">😊</span>
+            <span data-val="5">😁</span>
+          </div>
+          <input type="hidden" id="ci-mood" />
+          <label>Notes libres (ressenti, obstacles...)</label>
+          <textarea id="ci-notes" rows="3" placeholder="Cette semaine j'ai..."></textarea>
+          <button type="submit" class="btn-primary">Enregistrer le check-in ✓</button>
+        </form>
+
+        <!-- Historique des check-ins -->
+        <h3 style="margin-top:2rem">Historique</h3>
+        <div id="checkin-history" class="history-list"></div>
+      </div>
+
+      <!-- ── Plan de repas ── -->
+      <div id="tab-meals" class="tab-content">
+        <h2>Plan de repas</h2>
+        <div class="week-selector">
+          <label>Semaine du :</label>
+          <input type="date" id="meals-week-date" />
+          <button class="btn-secondary" id="btn-load-meals">Charger</button>
+          <button class="btn-accent" id="btn-gen-shopping">🛒 Générer liste de courses</button>
+        </div>
+        <div id="meals-error" class="error-msg hidden"></div>
+        <div id="meals-success" class="success-msg hidden"></div>
+
+        <!-- Grille repas par jour -->
+        <div id="meals-grid" class="meals-grid"></div>
+
+        <!-- Formulaire ajout repas -->
+        <div class="form-card" style="margin-top:1.5rem">
+          <h3>Ajouter un repas</h3>
+          <div class="row-3">
+            <div>
+              <label>Jour</label>
+              <select id="meal-day">
+                <option>lundi</option><option>mardi</option><option>mercredi</option>
+                <option>jeudi</option><option>vendredi</option><option>samedi</option><option>dimanche</option>
+              </select>
+            </div>
+            <div>
+              <label>Type</label>
+              <select id="meal-type">
+                <option>petit-déjeuner</option><option>déjeuner</option>
+                <option>dîner</option><option>collation</option>
+              </select>
+            </div>
+            <div>
+              <label>Recette</label>
+              <input type="text" id="meal-recipe" placeholder="Ex: Curry de pois chiches" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Calories (optionnel)</label>
+              <input type="number" id="meal-cal" placeholder="450" />
+            </div>
+            <div>
+              <label>Protéines g (optionnel)</label>
+              <input type="number" id="meal-prot" placeholder="30" step="0.1" />
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-add-meal">Ajouter ce repas</button>
+        </div>
+      </div>
+
+      <!-- ── Liste de courses ── -->
+      <div id="tab-shopping" class="tab-content">
+        <h2>Liste de courses</h2>
+        <div class="week-selector">
+          <label>Semaine du :</label>
+          <input type="date" id="shopping-week-date" />
+          <button class="btn-secondary" id="btn-load-shopping">Charger</button>
+        </div>
+        <div id="shopping-error" class="error-msg hidden"></div>
+        <div id="shopping-list-container">
+          <p class="empty-msg">Sélectionne une semaine ou génère une liste depuis le plan de repas.</p>
+        </div>
+
+        <!-- Ajouter manuellement -->
+        <div class="form-card" style="margin-top:1.5rem">
+          <h3>Ajouter un article manuellement</h3>
+          <div class="row-2">
+            <input type="text" id="shop-item-name" placeholder="Ex: Poulet 1kg" />
+            <input type="text" id="shop-item-qty" placeholder="Quantité" />
+          </div>
+          <button class="btn-primary" id="btn-add-shop-item">Ajouter</button>
+        </div>
+      </div>
+
+      <!-- ── Progression ── -->
+      <div id="tab-progress" class="tab-content">
+        <h2>Courbe de progression</h2>
+        <div class="chart-container big">
+          <canvas id="chart-weight-full"></canvas>
+        </div>
+        <div class="chart-container big">
+          <canvas id="chart-activity"></canvas>
+        </div>
+        <div id="progress-table-container"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
