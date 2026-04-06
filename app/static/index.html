@@ -366,6 +366,40 @@
     </main>
   </div>
 
+  <!-- Modal import partiel -->
+  <div id="modal-import" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width:480px">
+      <h3>Données existantes détectées</h3>
+      <p style="color:var(--text-light);font-size:.88rem;margin:.4rem 0 1rem">Des repas et/ou exercices existent déjà pour cette semaine. Que veux-tu faire ?</p>
+      <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.2rem">
+        <label class="radio-option" id="opt-all">
+          <input type="radio" name="import-mode" value="all" checked />
+          <span><strong>Tout écraser</strong> — remplace tous les jours</span>
+        </label>
+        <label class="radio-option" id="opt-partial">
+          <input type="radio" name="import-mode" value="partial" />
+          <span><strong>Jours spécifiques</strong> — choisir ci-dessous</span>
+        </label>
+      </div>
+      <div id="days-selector" style="display:none">
+        <p style="font-size:.82rem;font-weight:600;margin-bottom:.5rem">Jours à écraser :</p>
+        <div class="days-checkboxes">
+          <label><input type="checkbox" value="lundi" /> Lundi</label>
+          <label><input type="checkbox" value="mardi" /> Mardi</label>
+          <label><input type="checkbox" value="mercredi" /> Mercredi</label>
+          <label><input type="checkbox" value="jeudi" /> Jeudi</label>
+          <label><input type="checkbox" value="vendredi" /> Vendredi</label>
+          <label><input type="checkbox" value="samedi" /> Samedi</label>
+          <label><input type="checkbox" value="dimanche" /> Dimanche</label>
+        </div>
+      </div>
+      <div style="display:flex;gap:.8rem;margin-top:1.2rem">
+        <button class="btn-primary" id="modal-import-confirm">Importer</button>
+        <button class="btn-secondary" id="modal-import-cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal édition utilisateur -->
   <div id="modal-edit-user" class="modal-overlay hidden">
     <div class="modal-card">

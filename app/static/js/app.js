@@ -872,6 +872,8 @@ async function toggleExercise(id, weekDate) {
 
 // ── Import Claude ─────────────────────────────────────────────────────────────
 
+let pendingImportData = null;
+
 document.getElementById('btn-import').addEventListener('click', async () => {
   hideMsg('import-error');
   hideMsg('import-success');
@@ -886,21 +888,71 @@ document.getElementById('btn-import').addEventListener('click', async () => {
     return;
   }
 
+  if (!data.week_date) { showError('import-error', 'Le champ week_date est manquant'); return; }
+
+  // Vérifier si des données existent déjà pour cette semaine
   try {
-    const res = await api('POST', '/api/meals/bulk', data);
-    showSuccess('import-success',
-      `✅ Importé : ${res.meals_imported} repas · ${res.shopping_items} articles de courses · ${res.recipes_imported} recettes · ${res.exercises_imported} exercices`
-    );
-    document.getElementById('import-json').value = '';
-    // Mettre à jour la date de la semaine dans les autres onglets
-    if (data.week_date) {
-      document.getElementById('meals-week-date').value = data.week_date;
-      document.getElementById('shopping-week-date').value = data.week_date;
+    const existing = await api('GET', `/api/meals/week/${data.week_date}`);
+    if (existing.length > 0) {
+      // Afficher le modal de choix
+      pendingImportData = data;
+      document.querySelector('input[name="import-mode"][value="all"]').checked = true;
+      document.getElementById('days-selector').style.display = 'none';
+      document.querySelectorAll('.days-checkboxes input').forEach(cb => cb.checked = false);
+      document.getElementById('modal-import').classList.remove('hidden');
+      return;
     }
+  } catch { /* pas de données existantes, on continue */ }
+
+  await doImport(data, null);
+});
+
+// Toggle jours selector
+document.querySelectorAll('input[name="import-mode"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.getElementById('days-selector').style.display =
+      radio.value === 'partial' ? 'block' : 'none';
+  });
+});
+
+document.getElementById('modal-import-cancel').addEventListener('click', () => {
+  document.getElementById('modal-import').classList.add('hidden');
+  pendingImportData = null;
+});
+
+document.getElementById('modal-import-confirm').addEventListener('click', async () => {
+  const mode = document.querySelector('input[name="import-mode"]:checked').value;
+  let replaceDays = null;
+  if (mode === 'partial') {
+    replaceDays = [...document.querySelectorAll('.days-checkboxes input:checked')].map(cb => cb.value);
+    if (replaceDays.length === 0) {
+      alert('Sélectionne au moins un jour');
+      return;
+    }
+  }
+  document.getElementById('modal-import').classList.add('hidden');
+  await doImport(pendingImportData, replaceDays);
+  pendingImportData = null;
+});
+
+async function doImport(data, replaceDays) {
+  const payload = { ...data };
+  if (replaceDays !== null) payload.replace_days = replaceDays;
+
+  try {
+    const res = await api('POST', '/api/meals/bulk', payload);
+    const msg = replaceDays
+      ? `✅ Jours écrasés (${replaceDays.join(', ')}) : ${res.meals_imported} repas · ${res.exercises_imported} exercices`
+      : `✅ Importé : ${res.meals_imported} repas · ${res.shopping_items} articles de courses · ${res.recipes_imported} recettes · ${res.exercises_imported} exercices`;
+    showSuccess('import-success', msg);
+    document.getElementById('import-json').value = '';
+    document.getElementById('meals-week-date').value = data.week_date;
+    document.getElementById('shopping-week-date').value = data.week_date;
+    document.getElementById('sport-week-date').value = data.week_date;
   } catch (err) {
     showError('import-error', err.message);
   }
-});
+}
 
 // ── Recettes ──────────────────────────────────────────────────────────────────
 

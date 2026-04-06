@@ -182,6 +182,7 @@ class WeekImport(BaseModel):
     shopping: List[ShoppingBulkItem] = []
     recipes: List[RecipeCreate] = []
     exercises: List[ExerciseBulkItem] = []
+    replace_days: Optional[List[str]] = None  # None = tout écraser, liste = jours spécifiques
 
 
 # ── Stats / Dashboard ─────────────────────────────────────────────────────────

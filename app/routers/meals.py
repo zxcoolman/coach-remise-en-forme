@@ -69,22 +69,29 @@ def import_week(
     current_user: models.User = Depends(get_current_user)
 ):
     """Importe un plan de semaine complet généré par Claude (repas + courses + recettes)"""
-    # Supprimer les repas existants de la semaine
-    db.query(models.MealPlan).filter(
+    # replace_days=None → tout écraser ; replace_days=[...] → seulement ces jours
+    days = [d.lower() for d in data.replace_days] if data.replace_days is not None else None
+
+    # Supprimer les repas existants (tous ou par jour)
+    q_meals = db.query(models.MealPlan).filter(
         models.MealPlan.user_id == current_user.id,
         models.MealPlan.week_date == data.week_date
-    ).delete()
+    )
+    if days is not None:
+        q_meals = q_meals.filter(models.MealPlan.day_of_week.in_(days))
+    q_meals.delete(synchronize_session=False)
 
-    # Créer les repas
+    # Créer les repas (filtrer par jours sélectionnés si partiel)
     for m in data.meals:
-        db.add(models.MealPlan(
-            user_id=current_user.id,
-            week_date=data.week_date,
-            **m.dict()
-        ))
+        if days is None or m.day_of_week.lower() in days:
+            db.add(models.MealPlan(
+                user_id=current_user.id,
+                week_date=data.week_date,
+                **m.dict()
+            ))
 
-    # Créer la liste de courses si fournie
-    if data.shopping:
+    # Courses : remplacer seulement si import total OU si explicitement fourni avec jours=None
+    if data.shopping and days is None:
         old = db.query(models.ShoppingList).filter(
             models.ShoppingList.user_id == current_user.id,
             models.ShoppingList.week_date == data.week_date
@@ -99,18 +106,22 @@ def import_week(
             items=json.dumps(items, ensure_ascii=False)
         ))
 
-    # Créer les exercices si fournis
+    # Exercices (tous ou par jour)
     if data.exercises:
-        db.query(models.DailyExercise).filter(
+        q_ex = db.query(models.DailyExercise).filter(
             models.DailyExercise.user_id == current_user.id,
             models.DailyExercise.week_date == data.week_date
-        ).delete()
+        )
+        if days is not None:
+            q_ex = q_ex.filter(models.DailyExercise.day_of_week.in_(days))
+        q_ex.delete(synchronize_session=False)
         for e in data.exercises:
-            db.add(models.DailyExercise(
-                user_id=current_user.id,
-                week_date=data.week_date,
-                **e.dict()
-            ))
+            if days is None or e.day_of_week.lower() in days:
+                db.add(models.DailyExercise(
+                    user_id=current_user.id,
+                    week_date=data.week_date,
+                    **e.dict()
+                ))
 
     # Créer les recettes si fournies
     if data.recipes:

@@ -542,6 +542,23 @@ h3 {
 .modal-card h3 { margin: 0 0 1.2rem; }
 .modal-card label { font-size: .85rem; font-weight: 600; margin-bottom: .3rem; display: block; }
 .modal-card input { margin-bottom: .2rem; }
+.radio-option {
+  display: flex; align-items: flex-start; gap: .6rem;
+  padding: .6rem .8rem; border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; font-weight: normal;
+}
+.radio-option:has(input:checked) { border-color: var(--primary); background: #eff4ff; }
+.radio-option input { margin-top: .15rem; flex-shrink: 0; }
+.days-checkboxes {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem;
+}
+.days-checkboxes label {
+  display: flex; align-items: center; gap: .4rem;
+  font-weight: normal; font-size: .83rem;
+  padding: .3rem .5rem; border: 1px solid var(--border); border-radius: 6px;
+  cursor: pointer;
+}
+.days-checkboxes label:has(input:checked) { border-color: var(--primary); background: #eff4ff; }
 
 /* ─── SPORT ─────────────────────────────────── */
 .sport-day { margin-bottom: 1.5rem; }
