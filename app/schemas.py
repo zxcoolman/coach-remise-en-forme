@@ -20,6 +20,7 @@ class UserOut(BaseModel):
     full_name: Optional[str]
     height_cm: Optional[float]
     target_weight: Optional[float]
+    is_admin: bool = False
     created_at: datetime
 
     class Config:

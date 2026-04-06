@@ -1,15 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from .. import models, schemas
-from ..auth import get_password_hash, verify_password, create_access_token
+from ..auth import get_password_hash, verify_password, create_access_token, get_current_user
 from ..database import get_db
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=schemas.UserOut, status_code=201)
-def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Vérifier unicité
+def register(
+    user_data: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Réservé à l'admin — crée un nouveau compte utilisateur."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Réservé à l'administrateur")
+
     if db.query(models.User).filter(models.User.username == user_data.username).first():
         raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris")
     if db.query(models.User).filter(models.User.email == user_data.email).first():

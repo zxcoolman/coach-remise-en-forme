@@ -16,6 +16,7 @@ class User(Base):
     target_weight = Column(Float)      # poids objectif
     created_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
 
     checkins = relationship("WeeklyCheckin", back_populates="user", cascade="all, delete-orphan")
     meal_plans = relationship("MealPlan", back_populates="user", cascade="all, delete-orphan")

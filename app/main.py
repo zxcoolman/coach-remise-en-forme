@@ -1,12 +1,44 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from .database import Base, engine
+from .database import Base, engine, SessionLocal
 from .routers import auth, checkins, meals, shopping, recipes, exercises
+from . import models
+from .auth import get_password_hash
 import os
+import secrets
+import string
 
 # Créer les tables au démarrage
 Base.metadata.create_all(bind=engine)
+
+
+def create_admin_if_missing():
+    db = SessionLocal()
+    try:
+        admin = db.query(models.User).filter(models.User.is_admin == True).first()
+        if not admin:
+            alphabet = string.ascii_letters + string.digits
+            password = ''.join(secrets.choice(alphabet) for _ in range(16))
+            admin = models.User(
+                username="admin",
+                email="admin@local",
+                hashed_password=get_password_hash(password),
+                full_name="Administrateur",
+                is_admin=True,
+            )
+            db.add(admin)
+            db.commit()
+            print("=" * 50)
+            print("ADMIN CRÉÉ — MOT DE PASSE (affiché une seule fois) :")
+            print(f"  username : admin")
+            print(f"  password : {password}")
+            print("=" * 50)
+    finally:
+        db.close()
+
+
+create_admin_if_missing()
 
 app = FastAPI(
     title="Coach Remise en Forme",

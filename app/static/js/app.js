@@ -136,6 +136,10 @@ async function loadApp() {
     showPage('page-app');
     showTab('dashboard');
     loadDashboard();
+    // Afficher le lien register uniquement pour l'admin
+    if (currentUser.is_admin) {
+      document.getElementById('register-link').style.display = '';
+    }
     // Pré-remplir la date du lundi courant
     const monday = getMondayOfWeek();
     document.getElementById('ci-date').value = monday;
