@@ -146,11 +146,40 @@ class ShoppingBulkItem(BaseModel):
     category: str = ""
 
 
+# ── Exercices ─────────────────────────────────────────────────────────────────
+class ExerciseBulkItem(BaseModel):
+    day_of_week: str
+    exercise_name: str
+    exercise_type: str = "renforcement"   # marche, renforcement, étirement, cardio
+    sets: Optional[int] = None
+    reps_or_duration: Optional[str] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    order_idx: int = 0
+
+
+class ExerciseOut(BaseModel):
+    id: int
+    day_of_week: str
+    exercise_name: str
+    exercise_type: str
+    sets: Optional[int]
+    reps_or_duration: Optional[str]
+    description: Optional[str]
+    image_url: Optional[str]
+    order_idx: int
+    done: bool
+
+    class Config:
+        from_attributes = True
+
+
 class WeekImport(BaseModel):
     week_date: date
     meals: List[MealBulkItem] = []
     shopping: List[ShoppingBulkItem] = []
     recipes: List[RecipeCreate] = []
+    exercises: List[ExerciseBulkItem] = []
 
 
 # ── Stats / Dashboard ─────────────────────────────────────────────────────────

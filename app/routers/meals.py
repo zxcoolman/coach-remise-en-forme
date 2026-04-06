@@ -99,6 +99,19 @@ def import_week(
             items=json.dumps(items, ensure_ascii=False)
         ))
 
+    # Créer les exercices si fournis
+    if data.exercises:
+        db.query(models.DailyExercise).filter(
+            models.DailyExercise.user_id == current_user.id,
+            models.DailyExercise.week_date == data.week_date
+        ).delete()
+        for e in data.exercises:
+            db.add(models.DailyExercise(
+                user_id=current_user.id,
+                week_date=data.week_date,
+                **e.dict()
+            ))
+
     # Créer les recettes si fournies
     if data.recipes:
         for r in data.recipes:
@@ -128,7 +141,8 @@ def import_week(
         "ok": True,
         "meals_imported": len(data.meals),
         "shopping_items": len(data.shopping),
-        "recipes_imported": len(data.recipes)
+        "recipes_imported": len(data.recipes),
+        "exercises_imported": len(data.exercises)
     }
 
 

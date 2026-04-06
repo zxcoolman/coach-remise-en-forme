@@ -66,6 +66,7 @@
         <li><a href="#" data-tab="checkin">📝 Check-in semaine</a></li>
         <li><a href="#" data-tab="meals">🍽️ Plan repas</a></li>
         <li><a href="#" data-tab="shopping">🛒 Liste de courses</a></li>
+        <li><a href="#" data-tab="sport">💪 Sport</a></li>
         <li><a href="#" data-tab="recipes">📖 Recettes</a></li>
         <li><a href="#" data-tab="import">📥 Import Claude</a></li>
         <li><a href="#" data-tab="progress">📈 Progression</a></li>
@@ -242,6 +243,17 @@
           </div>
           <button class="btn-primary" id="btn-add-shop-item">Ajouter</button>
         </div>
+      </div>
+
+      <!-- ── Sport ── -->
+      <div id="tab-sport" class="tab-content">
+        <h2>Programme sport de la semaine</h2>
+        <div class="week-selector">
+          <label>Semaine du :</label>
+          <input type="date" id="sport-week-date" />
+          <button class="btn-secondary" id="btn-load-sport">Charger</button>
+        </div>
+        <div id="sport-container"></div>
       </div>
 
       <!-- ── Recettes ── -->

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from .database import Base, engine
-from .routers import auth, checkins, meals, shopping, recipes
+from .routers import auth, checkins, meals, shopping, recipes, exercises
 import os
 
 # Créer les tables au démarrage
@@ -20,6 +20,7 @@ app.include_router(checkins.router)
 app.include_router(meals.router)
 app.include_router(shopping.router)
 app.include_router(recipes.router)
+app.include_router(exercises.router)
 
 # Servir le frontend statique
 static_dir = os.path.join(os.path.dirname(__file__), "static")

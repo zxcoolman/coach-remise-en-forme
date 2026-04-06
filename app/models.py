@@ -21,6 +21,7 @@ class User(Base):
     meal_plans = relationship("MealPlan", back_populates="user", cascade="all, delete-orphan")
     shopping_lists = relationship("ShoppingList", back_populates="user", cascade="all, delete-orphan")
     recipes = relationship("Recipe", back_populates="user", cascade="all, delete-orphan")
+    exercises = relationship("DailyExercise", back_populates="user", cascade="all, delete-orphan")
 
 
 class WeeklyCheckin(Base):
@@ -89,3 +90,23 @@ class Recipe(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="recipes")
+
+
+class DailyExercise(Base):
+    __tablename__ = "daily_exercises"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    week_date = Column(Date, nullable=False)
+    day_of_week = Column(String, nullable=False)       # lundi, mardi...
+    exercise_name = Column(String, nullable=False)
+    exercise_type = Column(String)                     # marche, renforcement, étirement
+    sets = Column(Integer)                             # null pour cardio
+    reps_or_duration = Column(String)                  # "10 reps", "30 sec", "45 min"
+    description = Column(Text)
+    image_url = Column(String)                         # URL illustration
+    order_idx = Column(Integer, default=0)
+    done = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="exercises")

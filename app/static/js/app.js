@@ -141,6 +141,7 @@ async function loadApp() {
     document.getElementById('ci-date').value = monday;
     document.getElementById('meals-week-date').value = monday;
     document.getElementById('shopping-week-date').value = monday;
+    document.getElementById('sport-week-date').value = monday;
   } catch {
     TOKEN = null;
     localStorage.removeItem('coach_token');
@@ -158,6 +159,7 @@ document.querySelectorAll('[data-tab]').forEach(link => {
     if (tab === 'checkin') loadCheckinHistory();
     if (tab === 'progress') loadProgress();
     if (tab === 'recipes') loadRecipes();
+    if (tab === 'sport') loadSport(document.getElementById('sport-week-date').value);
   });
 });
 
@@ -605,6 +607,100 @@ async function loadProgress() {
   }
 }
 
+// ── Sport ─────────────────────────────────────────────────────────────────────
+
+const EXERCISE_IMAGES = {
+  // Marche / cardio
+  'marche': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Walking_exercise.jpg/320px-Walking_exercise.jpg',
+  // Renforcement
+  'planche': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Plank_exercise.jpg/320px-Plank_exercise.jpg',
+  'gainage': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Plank_exercise.jpg/320px-Plank_exercise.jpg',
+  'pompes': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Pushup.jpg/320px-Pushup.jpg',
+  'push-up': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Pushup.jpg/320px-Pushup.jpg',
+  'squat': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Squats.jpg/320px-Squats.jpg',
+  'crunch': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Crunches.jpg/320px-Crunches.jpg',
+  'abdominaux': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Crunches.jpg/320px-Crunches.jpg',
+  'abdo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Crunches.jpg/320px-Crunches.jpg',
+};
+
+const EXERCISE_TYPE_EMOJI = {
+  'marche': '🚶', 'cardio': '🏃', 'renforcement': '💪',
+  'étirement': '🧘', 'stretching': '🧘', 'repos': '😴'
+};
+
+function getExerciseImage(ex) {
+  if (ex.image_url) return ex.image_url;
+  const key = ex.exercise_name.toLowerCase().split(' ')[0];
+  for (const [k, url] of Object.entries(EXERCISE_IMAGES)) {
+    if (key.includes(k) || ex.exercise_name.toLowerCase().includes(k)) return url;
+  }
+  return null;
+}
+
+document.getElementById('btn-load-sport').addEventListener('click', () => {
+  loadSport(document.getElementById('sport-week-date').value);
+});
+
+async function loadSport(weekDate) {
+  if (!weekDate) return;
+  const container = document.getElementById('sport-container');
+  try {
+    const exercises = await api('GET', `/api/exercises/week/${weekDate}`);
+    if (exercises.length === 0) {
+      container.innerHTML = '<p class="empty-msg">Aucun programme pour cette semaine — importe un plan depuis l\'onglet Import Claude.</p>';
+      return;
+    }
+
+    const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    const byDay = {};
+    DAYS.forEach(d => { byDay[d] = []; });
+    exercises.forEach(e => {
+      const d = e.day_of_week.toLowerCase();
+      if (byDay[d]) byDay[d].push(e);
+    });
+
+    container.innerHTML = DAYS.filter(d => byDay[d].length > 0).map(day => `
+      <div class="sport-day">
+        <div class="sport-day-header">${day.charAt(0).toUpperCase() + day.slice(1)}</div>
+        <div class="sport-exercises">
+          ${byDay[day].map(ex => {
+            const img = getExerciseImage(ex);
+            const emoji = EXERCISE_TYPE_EMOJI[ex.exercise_type?.toLowerCase()] || '🏋️';
+            return `
+              <div class="exercise-card ${ex.done ? 'exercise-done' : ''}" id="ex-${ex.id}">
+                <div class="exercise-check">
+                  <input type="checkbox" ${ex.done ? 'checked' : ''} onchange="toggleExercise(${ex.id}, '${weekDate}')" />
+                </div>
+                ${img ? `<img class="exercise-img" src="${img}" alt="${ex.exercise_name}" onerror="this.style.display='none'" />` : `<div class="exercise-emoji">${emoji}</div>`}
+                <div class="exercise-info">
+                  <div class="exercise-name">${emoji} ${ex.exercise_name}</div>
+                  <div class="exercise-meta">
+                    ${ex.sets ? `<span>${ex.sets} séries</span>` : ''}
+                    ${ex.reps_or_duration ? `<span>${ex.reps_or_duration}</span>` : ''}
+                    <span class="exercise-type-badge">${ex.exercise_type || ''}</span>
+                  </div>
+                  ${ex.description ? `<p class="exercise-desc">${ex.description}</p>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<p class="empty-msg">Erreur au chargement.</p>';
+  }
+}
+
+async function toggleExercise(id, weekDate) {
+  try {
+    await api('PATCH', `/api/exercises/${id}/toggle`);
+    loadSport(weekDate);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 // ── Import Claude ─────────────────────────────────────────────────────────────
 
 document.getElementById('btn-import').addEventListener('click', async () => {
@@ -624,7 +720,7 @@ document.getElementById('btn-import').addEventListener('click', async () => {
   try {
     const res = await api('POST', '/api/meals/bulk', data);
     showSuccess('import-success',
-      `✅ Importé : ${res.meals_imported} repas · ${res.shopping_items} articles de courses · ${res.recipes_imported} recettes`
+      `✅ Importé : ${res.meals_imported} repas · ${res.shopping_items} articles de courses · ${res.recipes_imported} recettes · ${res.exercises_imported} exercices`
     );
     document.getElementById('import-json').value = '';
     // Mettre à jour la date de la semaine dans les autres onglets
