@@ -58,9 +58,10 @@ function hideMsg(id) {
 
 function getMondayOfWeek(date = new Date()) {
   const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
+  const day = d.getDay(); // 0=dim, 1=lun, ..., 6=sam
+  // Dimanche → prochain lundi (+1), autres jours → lundi de la semaine en cours
+  const diff = day === 0 ? 1 : -(day - 1);
+  d.setDate(d.getDate() + diff);
   return d.toISOString().split('T')[0];
 }
 
