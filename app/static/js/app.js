@@ -163,10 +163,30 @@ async function loadApp() {
   }
 }
 
-// Sidebar navigation
+// ── Hamburger mobile ──────────────────────────────────────────────────────────
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  hamburger.classList.remove('open');
+  sidebarOverlay.classList.remove('active');
+}
+
+hamburger.addEventListener('click', () => {
+  const isOpen = sidebar.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  sidebarOverlay.classList.toggle('active', isOpen);
+});
+
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+// ── Sidebar navigation ────────────────────────────────────────────────────────
 document.querySelectorAll('[data-tab]').forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
+    closeSidebar();
     const tab = link.dataset.tab;
     showTab(tab);
     if (tab === 'dashboard') loadDashboard();

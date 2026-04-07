@@ -661,6 +661,46 @@ details summary {
   padding: 1rem; resize: vertical; color: var(--text);
 }
 
+/* ─── HAMBURGER ─────────────────────────────── */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: .75rem;
+  left: .75rem;
+  z-index: 200;
+  background: var(--sidebar-bg);
+  border: none;
+  border-radius: 8px;
+  padding: .5rem .6rem;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ─── OVERLAY MOBILE ────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ─── SIDEBAR TRANSITION ────────────────────── */
+#sidebar { transition: transform .25s ease; }
+
 /* ─── RESPONSIVE ────────────────────────────── */
 @media (max-width: 900px) {
   #sidebar { width: 60px; }
@@ -674,7 +714,36 @@ details summary {
 }
 
 @media (max-width: 600px) {
+  /* Hamburger visible */
+  .hamburger { display: flex; }
+
+  /* Sidebar cachée par défaut, pleine largeur quand ouverte */
+  #sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  /* Rétablir les éléments masqués à 900px */
+  #sidebar ul li a { padding: .7rem 1.2rem; font-size: .92rem; }
+  .sidebar-logo { display: block; }
+  .sidebar-user { display: block; }
+
+  /* Contenu pleine largeur */
+  #main-content {
+    margin-left: 0;
+    padding: 1rem;
+    padding-top: 3.5rem; /* espace pour le hamburger */
+  }
+
+  /* Grilles */
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .meals-grid { grid-template-columns: 1fr; }
   .row-2, .row-3 { grid-template-columns: 1fr; }
+
+  /* Modals */
+  .modal-card { width: calc(100vw - 2rem); max-width: 100%; }
+
+  /* Auth card */
+  .auth-card { margin: 1rem; }
 }
